@@ -4,29 +4,26 @@ const absensiService = require('../services/absensi.service');
 
 async function handleCreateAbsensi(req, res) {
     try {
-        // Ambil data teks dari req.body
-        const { id_user, id_shift, id_titik, ada_temuan, catatan } = req.body;
-        
-        // Ambil nama file dari req.file (hasil upload Multer)
-        const foto_selfie = req.file ? req.file.filename : null;
+        const { id_user, id_shift, id_titik, ada_temuan, catatan, waktu_mulai, waktu_selesai } = req.body;
+        const foto_selfie = req.file ? req.file.filename : null; // tetap ambil file kalau ada
 
-        // Validasi input
-        if (!id_user || !id_shift || !id_titik || !foto_selfie || ada_temuan === undefined) {
+        // Validasi wajib, selfie boleh null
+        if (!id_user || !id_shift || !id_titik || ada_temuan === undefined) {
             return res.status(400).json({ 
                 status: 'error', 
-                message: 'Data user, shift, titik, selfie, dan status temuan dibutuhkan.' 
+                message: 'Data patroli tidak lengkap.' 
             });
         }
 
-        // Panggil service dengan semua data
         const result = await absensiService.createAbsensi({ 
             id_user, 
             id_shift, 
-            id_titik,
-            foto_selfie,
-            // Konversi string 'true'/'false' dari form-data menjadi boolean
+            id_titik, 
+            foto_selfie, // bisa null
             ada_temuan: ada_temuan === 'true', 
-            catatan: catatan || null // Kirim null jika catatan kosong
+            catatan: catatan || null,
+            waktu_mulai, 
+            waktu_selesai 
         });
 
         res.status(201).json({ 
@@ -36,6 +33,7 @@ async function handleCreateAbsensi(req, res) {
         });
 
     } catch (error) {
+        console.error(error);
         res.status(500).json({ 
             status: 'error', 
             message: 'Terjadi kesalahan pada server.' 

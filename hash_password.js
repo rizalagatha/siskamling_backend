@@ -1,7 +1,7 @@
 // hash_password.js
 const bcrypt = require('bcryptjs');
 
-const passwordToHash = '006'; // <-- Ganti password di sini
+const passwordToHash = '011'; // <-- Ganti password di sini
 const saltRounds = 10;
 
 bcrypt.hash(passwordToHash, saltRounds, function(err, hash) {

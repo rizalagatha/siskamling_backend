@@ -9,7 +9,18 @@ const pool = require('../config/db');
  */
 async function getTitikByCabang(idCabang) {
     try {
-        const sql = "SELECT id_titik, nama_titik, latitude, longitude FROM titik WHERE id_cabang = ?";
+        const sql = `
+  SELECT 
+  id_titik,
+  id_cabang,
+  nama_titik,
+  nomor_urut,
+  CAST(latitude AS DECIMAL(10,8)) AS latitude,
+  CAST(longitude AS DECIMAL(11,8)) AS longitude
+FROM titik
+WHERE id_cabang = ?
+ORDER BY nomor_urut ASC;
+`;
         const [rows] = await pool.execute(sql, [idCabang]);
         return rows;
     } catch (error) {
