@@ -12,7 +12,7 @@ const userRoutes = require('./src/routes/user.routes');
 const shiftRoutes = require('./src/routes/shift.routes');
 
 const app = express();
-const port = process.env.API_PORT || 3000;
+const port = process.env.API_PORT || 3003;
 
 // Middleware
 app.use(cors());
