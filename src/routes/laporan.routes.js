@@ -12,6 +12,8 @@ router.get("/status/:id_user", laporanController.getStatus);
 // POST /api/laporan/apar-mingguan
 router.post("/apar-mingguan", laporanController.handleCreateLaporan);
 
+router.get('/saya/:id_user', laporanController.handleGetLaporanSaya);
+
 // GET /api/laporan/checkpoint
 router.get("/checkpoint", laporanController.handleGetLaporanCheckpoint);
 

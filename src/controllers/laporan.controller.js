@@ -72,12 +72,10 @@ async function handleGetLaporanCheckpoint(req, res) {
     const laporan = await laporanService.getLaporanCheckpoint(filters);
     res.status(200).json({ status: "success", data: laporan });
   } catch (error) {
-    res
-      .status(500)
-      .json({
-        status: "error",
-        message: "Gagal mengambil laporan checkpoint.",
-      });
+    res.status(500).json({
+      status: "error",
+      message: "Gagal mengambil laporan checkpoint.",
+    });
   }
 }
 
@@ -99,9 +97,30 @@ async function handleGetLaporanApar(req, res) {
   }
 }
 
+/**
+ * Controller untuk mengambil riwayat laporan harian (saya).
+ */
+async function handleGetLaporanSaya(req, res) {
+  try {
+    const { id_user } = req.params;
+    if (!id_user) {
+      return res
+        .status(400)
+        .json({ status: "error", message: "ID User dibutuhkan." });
+    }
+    const laporan = await laporanService.getLaporanSaya(id_user);
+    res.status(200).json({ status: "success", data: laporan });
+  } catch (error) {
+    res
+      .status(500)
+      .json({ status: "error", message: "Gagal mengambil riwayat laporan." });
+  }
+}
+
 module.exports = {
   getStatus,
   handleCreateLaporan,
   handleGetLaporanCheckpoint, // <-- Ekspor fungsi baru
   handleGetLaporanApar, // <-- Ekspor fungsi baru
+  handleGetLaporanSaya,
 };
