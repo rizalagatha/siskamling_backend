@@ -11,6 +11,7 @@ const titikRoutes = require('./src/routes/titik.routes');
 const userRoutes = require('./src/routes/user.routes');
 const shiftRoutes = require('./src/routes/shift.routes');
 const laporanRoutes = require('./src/routes/laporan.routes');
+const cabangRoutes = require('./src/routes/cabang.routes.js');
 
 const app = express();
 const port = process.env.API_PORT || 3003;
@@ -29,6 +30,7 @@ app.use('/api/titik', titikRoutes);
 app.use('/api/user', userRoutes);
 app.use('/api/shift', shiftRoutes);
 app.use('/api/laporan', laporanRoutes);
+app.use('/api/cabang', cabangRoutes);
 
 // Endpoint dasar untuk mengecek apakah server berjalan
 app.get('/', (req, res) => {
