@@ -1,12 +1,10 @@
-// src/middleware/uploadApar.js
+// src/middleware/uploadLaporan.js
 
 const multer = require("multer");
 const path = require("path");
 const fs = require("fs");
 
-const uploadDir = "src/uploads/apar"; // Buat folder baru untuk foto APAR
-
-// Pastikan direktori upload ada
+const uploadDir = "src/uploads/laporan_apar"; // Folder baru
 fs.mkdirSync(uploadDir, { recursive: true });
 
 const storage = multer.diskStorage({
@@ -15,11 +13,14 @@ const storage = multer.diskStorage({
   },
   filename: function (req, file, cb) {
     const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
-    cb(null, "apar-" + uniqueSuffix + path.extname(file.originalname));
+    // Kita bedakan nama filenya
+    cb(
+      null,
+      file.fieldname + "-" + uniqueSuffix + path.extname(file.originalname)
+    );
   },
 });
 
-// Filter file gambar
 const fileFilter = (req, file, cb) => {
   if (
     file.mimetype.startsWith("image/") ||
@@ -27,7 +28,7 @@ const fileFilter = (req, file, cb) => {
   ) {
     cb(null, true);
   } else {
-    cb(new Error("File yang diupload harus berupa gambar!"), false);
+    cb(new Error("File harus berupa gambar!"), false);
   }
 };
 
@@ -37,6 +38,8 @@ const upload = multer({
   fileFilter: fileFilter,
 });
 
-// Middleware ini akan mencari file dengan nama field 'foto_bukti'
-// Jika tidak ada foto bukti, kita gunakan .none()
-module.exports = upload.single("foto_bukti");
+// Middleware ini akan menangani 2 field file
+module.exports = upload.fields([
+  { name: "selfie", maxCount: 1 },
+  { name: "foto_bukti", maxCount: 1 },
+]);
