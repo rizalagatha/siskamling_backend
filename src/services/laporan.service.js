@@ -52,7 +52,94 @@ async function createLaporan(data) {
   }
 }
 
+/**
+ * Service untuk mengambil laporan checkpoint (untuk admin).
+ */
+async function getLaporanCheckpoint(filters) {
+  try {
+    // Query dasar
+    let sql = `
+            SELECT 
+                a.id_absensi,
+                a.waktu_mulai, 
+                a.waktu_selesai, 
+                a.ada_temuan, 
+                a.catatan, 
+                a.foto_selfie,
+                u.nama_lengkap AS petugas,
+                t.nama_titik AS titik,
+                c.nama_cabang AS cabang
+            FROM absensi a
+            JOIN user u ON a.id_user = u.id_user
+            JOIN titik t ON a.id_titik = t.id_titik
+            JOIN cabang c ON t.id_cabang = c.id_cabang
+            WHERE 1=1
+        `;
+    const params = [];
+
+    // Tambahkan filter dinamis
+    if (filters.id_cabang) {
+      sql += " AND c.id_cabang = ?";
+      params.push(filters.id_cabang);
+    }
+    if (filters.tanggal) {
+      sql += " AND DATE(a.waktu_mulai) = ?";
+      params.push(filters.tanggal);
+    }
+
+    sql += " ORDER BY a.waktu_mulai DESC";
+
+    const [rows] = await pool.execute(sql, params);
+    return rows;
+  } catch (error) {
+    console.error("Database error in getLaporanCheckpoint:", error);
+    throw error;
+  }
+}
+
+/**
+ * Service untuk mengambil laporan APAR mingguan (untuk admin).
+ */
+async function getLaporanApar(filters) {
+  try {
+    let sql = `
+            SELECT 
+                l.id_laporan,
+                l.waktu_lapor,
+                l.sudah_dibalik,
+                l.ada_temuan,
+                l.catatan,
+                u.nama_lengkap AS petugas,
+                c.nama_cabang AS cabang
+            FROM laporan_apar_mingguan l
+            JOIN user u ON l.id_user = u.id_user
+            JOIN cabang c ON l.id_cabang = c.id_cabang
+            WHERE 1=1
+        `;
+    const params = [];
+
+    if (filters.id_cabang) {
+      sql += " AND c.id_cabang = ?";
+      params.push(filters.id_cabang);
+    }
+    if (filters.tanggal) {
+      sql += " AND DATE(l.waktu_lapor) = ?";
+      params.push(filters.tanggal);
+    }
+
+    sql += " ORDER BY l.waktu_lapor DESC";
+
+    const [rows] = await pool.execute(sql, params);
+    return rows;
+  } catch (error) {
+    console.error("Database error in getLaporanApar:", error);
+    throw error;
+  }
+}
+
 module.exports = {
   getStatusMingguan,
   createLaporan,
+  getLaporanCheckpoint, // <-- Ekspor fungsi baru
+  getLaporanApar, // <-- Ekspor fungsi baru
 };

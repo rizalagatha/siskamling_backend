@@ -12,4 +12,10 @@ router.get("/status/:id_user", laporanController.getStatus);
 // POST /api/laporan/apar-mingguan
 router.post("/apar-mingguan", laporanController.handleCreateLaporan);
 
+// GET /api/laporan/checkpoint
+router.get("/checkpoint", laporanController.handleGetLaporanCheckpoint);
+
+// GET /api/laporan/apar
+router.get("/apar", laporanController.handleGetLaporanApar);
+
 module.exports = router;
