@@ -2,64 +2,68 @@
 
 const laporanService = require("../services/laporan.service");
 
-async function handleGetStatusMingguan(req, res) {
+/**
+ * Controller untuk mengecek status laporan mingguan.
+ */
+async function getStatus(req, res) {
   try {
     const { id_user } = req.params;
-    if (!id_user) {
-      return res.status(400).json({ message: "ID User dibutuhkan." });
-    }
-    const status = await laporanService.getStatusLaporanMingguan(id_user);
-    res.status(200).json({ status: status });
+    const status = await laporanService.getStatusMingguan(id_user);
+    res
+      .status(200)
+      .json({
+        status: "success",
+        message: "Status berhasil diambil.",
+        data: status,
+      });
   } catch (error) {
-    res.status(500).json({ message: "Terjadi kesalahan pada server." });
+    res
+      .status(500)
+      .json({ status: "error", message: "Gagal mengambil status." });
   }
 }
 
-async function handleCreateLaporanMingguan(req, res) {
+/**
+ * Controller untuk membuat laporan APAR mingguan (tanpa foto).
+ */
+async function handleCreateLaporan(req, res) {
   try {
+    // Data sekarang diambil dari req.body (JSON), bukan req.files
     const { id_user, id_cabang, sudah_dibalik, ada_temuan, catatan } = req.body;
 
-    // Ambil nama file dari req.files (karena kita pakai upload.fields)
-    const foto_selfie = req.files.selfie ? req.files.selfie[0].filename : null;
-    const foto_bukti = req.files.foto_bukti
-      ? req.files.foto_bukti[0].filename
-      : null;
-
-    if (
-      !id_user ||
-      !id_cabang ||
-      !sudah_dibalik ||
-      !foto_selfie ||
-      ada_temuan === undefined
-    ) {
+    if (id_user == null || id_cabang == null || sudah_dibalik == null) {
       return res
         .status(400)
-        .json({ status: "error", message: "Data laporan tidak lengkap." });
+        .json({
+          status: "error",
+          message: "Data (user, cabang, status dibalik) dibutuhkan.",
+        });
     }
 
-    const result = await laporanService.createLaporanMingguan({
+    const dataLaporan = {
       id_user,
       id_cabang,
-      sudah_dibalik: sudah_dibalik === "true",
-      ada_temuan: ada_temuan === "true",
+      sudah_dibalik,
+      ada_temuan: ada_temuan || false,
       catatan: catatan || null,
-      foto_selfie,
-      foto_bukti,
-    });
+    };
+
+    const insertedId = await laporanService.createLaporan(dataLaporan);
 
     res.status(201).json({
       status: "success",
       message: "Laporan APAR mingguan berhasil disimpan.",
+      data: { id_laporan: insertedId },
     });
   } catch (error) {
-    res.status(500).json({
-      status: "error",
-      message: "Terjadi kesalahan pada server.",
-    });
+    console.error("[Laporan APAR Controller Error]", error);
+    res
+      .status(500)
+      .json({ status: "error", message: "Gagal menyimpan laporan." });
   }
 }
 
 module.exports = {
-  handleGetStatusMingguan,
-  handleCreateLaporanMingguan,
+  getStatus,
+  handleCreateLaporan,
 };

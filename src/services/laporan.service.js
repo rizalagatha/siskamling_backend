@@ -3,65 +3,56 @@
 const pool = require("../config/db");
 
 /**
- * Service untuk mengecek apakah user sudah lapor dalam 7 hari terakhir.
+ * Service untuk mengecek status laporan APAR mingguan.
  */
-async function getStatusLaporanMingguan(idUser) {
+async function getStatusMingguan(idUser) {
   try {
     const sql = `
-            SELECT COUNT(*) as count 
-            FROM laporan_apar_mingguan
-            WHERE id_user = ? 
-              AND waktu_lapor >= DATE_SUB(NOW(), INTERVAL 7 DAY)
+            SELECT id_laporan 
+            FROM laporan_apar_mingguan 
+            WHERE id_user = ? AND waktu_lapor >= NOW() - INTERVAL 7 DAY
+            LIMIT 1
         `;
     const [rows] = await pool.execute(sql, [idUser]);
 
-    // Jika count > 0, berarti sudah lapor
-    return rows[0].count > 0 ? "Sudah Cek" : "Perlu Cek";
+    // Jika ada laporan dalam 7 hari terakhir, statusnya 'Sudah Cek'
+    if (rows.length > 0) {
+      return "Sudah Cek";
+    } else {
+      return "Perlu Cek";
+    }
   } catch (error) {
-    console.error("Database error in getStatusLaporanMingguan:", error);
+    console.error("Database error in getStatusMingguan:", error);
     throw error;
   }
 }
 
 /**
- * Service untuk menyimpan laporan mingguan baru.
+ * Service untuk menyimpan laporan APAR mingguan (tanpa foto).
  */
-async function createLaporanMingguan(data) {
-  const {
-    id_user,
-    id_cabang,
-    sudah_dibalik,
-    ada_temuan,
-    catatan,
-    foto_selfie,
-    foto_bukti,
-  } = data;
-
+async function createLaporan(data) {
+  const { id_user, id_cabang, sudah_dibalik, ada_temuan, catatan } = data;
   try {
     const sql = `
-            INSERT INTO laporan_apar_mingguan
-            (id_user, id_cabang, sudah_dibalik, ada_temuan, catatan, foto_selfie, foto_bukti)
-            VALUES (?, ?, ?, ?, ?, ?, ?)
+            INSERT INTO laporan_apar_mingguan 
+            (id_user, id_cabang, sudah_dibalik, ada_temuan, catatan) 
+            VALUES (?, ?, ?, ?, ?)
         `;
-
     const [result] = await pool.execute(sql, [
       id_user,
       id_cabang,
       sudah_dibalik,
       ada_temuan,
       catatan,
-      foto_selfie,
-      foto_bukti,
     ]);
-
-    return result;
+    return result.insertId;
   } catch (error) {
-    console.error("Database error in createLaporanMingguan:", error);
+    console.error("Database error in createLaporan:", error);
     throw error;
   }
 }
 
 module.exports = {
-  getStatusLaporanMingguan,
-  createLaporanMingguan,
+  getStatusMingguan,
+  createLaporan,
 };
