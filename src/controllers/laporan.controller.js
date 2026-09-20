@@ -185,6 +185,25 @@ async function handleGetKalenderDetail(req, res) {
   }
 }
 
+/**
+ * Data dropdown filter kalender.
+ * Query: cabang (opsional) -> mempersempit daftar satpam
+ */
+async function handleGetKalenderFilter(req, res) {
+  try {
+    const data = await laporanService.getKalenderFilter({
+      id_cabang: normalizeFilter(req.query.cabang),
+    });
+    res.status(200).json({ status: "success", data });
+  } catch (error) {
+    console.error("[Laporan Kalender Filter Controller Error]", error);
+    res.status(500).json({
+      status: "error",
+      message: "Gagal mengambil data filter.",
+    });
+  }
+}
+
 module.exports = {
   getStatus,
   handleCreateLaporan,
@@ -193,4 +212,5 @@ module.exports = {
   handleGetLaporanSaya,
   handleGetKalender,
   handleGetKalenderDetail,
+  handleGetKalenderFilter,
 };

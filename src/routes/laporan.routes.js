@@ -26,4 +26,7 @@ router.get("/kalender", laporanController.handleGetKalender);
 // GET /api/laporan/kalender/detail?tanggal=2025-11-10&cabang=1&satpam=5
 router.get("/kalender/detail", laporanController.handleGetKalenderDetail);
 
+// GET /api/laporan/kalender/filter?cabang=1
+router.get("/kalender/filter", laporanController.handleGetKalenderFilter);
+
 module.exports = router;
