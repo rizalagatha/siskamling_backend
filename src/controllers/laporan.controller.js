@@ -1,6 +1,14 @@
 // src/controllers/laporan.controller.js
 
 const laporanService = require("../services/laporan.service");
+const RE_BULAN = /^\d{4}-(0[1-9]|1[0-2])$/;
+const RE_TANGGAL = /^\d{4}-(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01])$/;
+
+// "", undefined, atau "all" => null (tanpa filter)
+function normalizeFilter(value) {
+  if (value == null || value === "" || value === "all") return null;
+  return value;
+}
 
 /**
  * Controller untuk mengecek status laporan mingguan.
@@ -117,10 +125,72 @@ async function handleGetLaporanSaya(req, res) {
   }
 }
 
+/**
+ * Ringkasan patroli per tanggal dalam satu bulan (untuk pewarnaan kalender).
+ * Query: bulan=YYYY-MM, cabang (opsional), satpam (opsional)
+ */
+async function handleGetKalender(req, res) {
+  try {
+    const { bulan } = req.query;
+    if (!RE_BULAN.test(bulan || "")) {
+      return res.status(400).json({
+        status: "error",
+        message: "Parameter bulan wajib diisi dengan format YYYY-MM.",
+      });
+    }
+
+    const data = await laporanService.getKalenderPatroli({
+      bulan,
+      id_cabang: normalizeFilter(req.query.cabang),
+      id_user: normalizeFilter(req.query.satpam),
+    });
+
+    res.status(200).json({ status: "success", data });
+  } catch (error) {
+    console.error("[Laporan Kalender Controller Error]", error);
+    res.status(500).json({
+      status: "error",
+      message: "Gagal mengambil data kalender laporan.",
+    });
+  }
+}
+
+/**
+ * Detail patroli pada satu tanggal: satpam, titik, dan temuan.
+ * Query: tanggal=YYYY-MM-DD, cabang (opsional), satpam (opsional)
+ */
+async function handleGetKalenderDetail(req, res) {
+  try {
+    const { tanggal } = req.query;
+    if (!RE_TANGGAL.test(tanggal || "")) {
+      return res.status(400).json({
+        status: "error",
+        message: "Parameter tanggal wajib diisi dengan format YYYY-MM-DD.",
+      });
+    }
+
+    const data = await laporanService.getKalenderDetail({
+      tanggal,
+      id_cabang: normalizeFilter(req.query.cabang),
+      id_user: normalizeFilter(req.query.satpam),
+    });
+
+    res.status(200).json({ status: "success", data });
+  } catch (error) {
+    console.error("[Laporan Kalender Detail Controller Error]", error);
+    res.status(500).json({
+      status: "error",
+      message: "Gagal mengambil detail patroli.",
+    });
+  }
+}
+
 module.exports = {
   getStatus,
   handleCreateLaporan,
-  handleGetLaporanCheckpoint, // <-- Ekspor fungsi baru
-  handleGetLaporanApar, // <-- Ekspor fungsi baru
+  handleGetLaporanCheckpoint,
+  handleGetLaporanApar,
   handleGetLaporanSaya,
+  handleGetKalender,
+  handleGetKalenderDetail,
 };

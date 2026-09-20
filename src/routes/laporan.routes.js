@@ -12,12 +12,18 @@ router.get("/status/:id_user", laporanController.getStatus);
 // POST /api/laporan/apar-mingguan
 router.post("/apar-mingguan", laporanController.handleCreateLaporan);
 
-router.get('/saya/:id_user', laporanController.handleGetLaporanSaya);
+router.get("/saya/:id_user", laporanController.handleGetLaporanSaya);
 
 // GET /api/laporan/checkpoint
 router.get("/checkpoint", laporanController.handleGetLaporanCheckpoint);
 
 // GET /api/laporan/apar
 router.get("/apar", laporanController.handleGetLaporanApar);
+
+// GET /api/laporan/kalender?bulan=2025-11&cabang=1&satpam=5
+router.get("/kalender", laporanController.handleGetKalender);
+
+// GET /api/laporan/kalender/detail?tanggal=2025-11-10&cabang=1&satpam=5
+router.get("/kalender/detail", laporanController.handleGetKalenderDetail);
 
 module.exports = router;
