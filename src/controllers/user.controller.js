@@ -11,12 +11,10 @@ async function handleLogin(req, res) {
     const { username, password } = req.body;
 
     if (!username || !password) {
-      return res
-        .status(400)
-        .json({
-          status: "error",
-          message: "Username dan password dibutuhkan.",
-        });
+      return res.status(400).json({
+        status: "error",
+        message: "Username dan password dibutuhkan.",
+      });
     }
 
     const user = await userService.findUserByUsername(username);
@@ -33,6 +31,13 @@ async function handleLogin(req, res) {
       return res
         .status(401)
         .json({ status: "error", message: "Password salah." });
+    }
+
+    if (user.aktif === 0) {
+      return res.status(403).json({
+        status: "error",
+        message: "Akun Anda dinonaktifkan. Hubungi administrator.",
+      });
     }
 
     // Jika otentikasi berhasil
@@ -55,6 +60,69 @@ async function handleLogin(req, res) {
   }
 }
 
-module.exports = {
-  handleLogin,
-};
+const ADMIN_ROLES = ["admin"]; // sesuaikan dengan hasil SELECT DISTINCT role
+
+async function requireAdmin(req, res, next) {
+  try {
+    const requester = await userService.findUserById(req.header("x-user-id"));
+    if (
+      !requester ||
+      requester.aktif === 0 ||
+      !ADMIN_ROLES.includes(requester.role)
+    ) {
+      return res
+        .status(403)
+        .json({ status: "error", message: "Akses ditolak." });
+    }
+    req.requester = requester;
+    next();
+  } catch (e) {
+    res
+      .status(500)
+      .json({ status: "error", message: "Terjadi kesalahan pada server." });
+  }
+}
+
+async function handleList(req, res) {
+  try {
+    const users = await userService.listUsers();
+    res.json({ status: "success", data: users });
+  } catch (e) {
+    res
+      .status(500)
+      .json({ status: "error", message: "Terjadi kesalahan pada server." });
+  }
+}
+
+async function handleSetStatus(req, res) {
+  try {
+    const id = Number(req.params.id);
+    const { aktif } = req.body;
+    if (!Number.isInteger(id) || typeof aktif !== "boolean") {
+      return res
+        .status(400)
+        .json({ status: "error", message: "Data tidak valid." });
+    }
+    if (id === req.requester.id_user && aktif === false) {
+      return res.status(400).json({
+        status: "error",
+        message: "Tidak bisa menonaktifkan akun sendiri.",
+      });
+    }
+    const ok = await userService.setAktif(id, aktif);
+    if (!ok)
+      return res
+        .status(404)
+        .json({ status: "error", message: "User tidak ditemukan." });
+    res.json({
+      status: "success",
+      message: aktif ? "Akun diaktifkan." : "Akun dinonaktifkan.",
+    });
+  } catch (e) {
+    res
+      .status(500)
+      .json({ status: "error", message: "Terjadi kesalahan pada server." });
+  }
+}
+
+module.exports = { handleLogin, requireAdmin, handleList, handleSetStatus };
