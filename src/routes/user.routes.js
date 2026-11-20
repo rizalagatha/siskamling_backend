@@ -11,5 +11,6 @@ router.patch(
   userController.requireAdmin,
   userController.handleSetStatus,
 );
+router.post("/", userController.requireAdmin, userController.handleCreate);
 
 module.exports = router;

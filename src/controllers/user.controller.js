@@ -125,4 +125,50 @@ async function handleSetStatus(req, res) {
   }
 }
 
-module.exports = { handleLogin, requireAdmin, handleList, handleSetStatus };
+async function handleCreate(req, res) {
+  try {
+    const username = (req.body.username || "").trim();
+    const password = req.body.password || "";
+    const namaLengkap = (req.body.nama_lengkap || "").trim();
+    const idCabang = Number(req.body.id_cabang);
+
+    if (!username || !namaLengkap || !Number.isInteger(idCabang)) {
+      return res
+        .status(400)
+        .json({ status: "error", message: "Data tidak lengkap." });
+    }
+    if (password.length < 6) {
+      return res
+        .status(400)
+        .json({ status: "error", message: "Password minimal 6 karakter." });
+    }
+    if (await userService.findUserByUsername(username)) {
+      return res
+        .status(409)
+        .json({ status: "error", message: "Username sudah dipakai." });
+    }
+
+    const passwordHash = await bcrypt.hash(password, 10);
+    const id = await userService.createUser({
+      username,
+      passwordHash,
+      namaLengkap,
+      idCabang,
+    });
+    res
+      .status(201)
+      .json({ status: "success", message: "Akun satpam dibuat.", id });
+  } catch (e) {
+    res
+      .status(500)
+      .json({ status: "error", message: "Terjadi kesalahan pada server." });
+  }
+}
+
+module.exports = {
+  handleLogin,
+  requireAdmin,
+  handleList,
+  handleSetStatus,
+  handleCreate,
+};

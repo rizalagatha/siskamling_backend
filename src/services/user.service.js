@@ -45,4 +45,12 @@ async function setAktif(id, aktif) {
   return result.affectedRows > 0;
 }
 
-module.exports = { findUserByUsername, findUserById, listUsers, setAktif };
+async function createUser({ username, passwordHash, namaLengkap, idCabang }) {
+  const [result] = await pool.execute(
+    "INSERT INTO user (username, password, nama_lengkap, id_cabang, role, aktif) VALUES (?, ?, ?, ?, 'satpam', 1)",
+    [username, passwordHash, namaLengkap, idCabang]
+  );
+  return result.insertId;
+}
+
+module.exports = { findUserByUsername, findUserById, listUsers, setAktif, createUser };
